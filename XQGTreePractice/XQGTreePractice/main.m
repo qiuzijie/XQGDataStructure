@@ -16,10 +16,50 @@ typedef struct BiTNode{
     struct BiTNode *lchild, *rchild;
 } BiTNode, *BiTree;
 
-typedef struct LStack{
+#pragma mark- 栈
+
+typedef struct{
     BiTree data[100];
     int top;
-} LStack;
+} SqStack;
+
+void push(BiTree T, SqStack *S){
+    (*S).data[++(*S).top] = T;
+    
+}
+
+BiTree pop(SqStack *S){
+    if ((*S).top == -1) {
+        return NULL;
+    }
+    return (*S).data[(*S).top--];
+}
+
+BiTree getTop(SqStack S){
+    if (S.top == -1) {
+        return NULL;
+    }
+    return S.data[S.top];
+}
+
+#pragma mark- 队列
+typedef struct{
+    BiTree data[100];
+    int front, rear;
+} SqQueue;
+
+void enQueue(BiTree T, SqQueue *Q){
+    (*Q).data[(*Q).front++] = T;
+    
+}
+
+BiTree outQueue(SqQueue *Q){
+    return (*Q).data[(*Q).rear++];
+}
+
+BOOL isEmptyQueue(SqQueue Q){
+    return (Q.front == Q.rear);
+}
 
 #pragma mark- 创建二叉链表
 void CreateBiTree(BiTree *T){
@@ -54,18 +94,6 @@ void visit(BiTree T){
     }
 }
 
-void push(BiTree T, LStack *S){
-    (*S).data[++(*S).top] = T;
-    
-}
-
-BiTree pop(LStack *S){
-    if ((*S).top == -1) {
-        return NULL;
-    }
-    return (*S).data[(*S).top--];
-}
-
 #pragma mark- 先序遍历_递归
 void preOrder(BiTree T){
     if (T) {
@@ -77,7 +105,7 @@ void preOrder(BiTree T){
 
 #pragma mark- 先序遍历_栈
 void preOrder_Stack(BiTree T){
-    LStack stack;
+    SqStack stack;
     stack.top = -1;
     push(T, &stack);
     while (stack.top != -1) {
@@ -92,12 +120,29 @@ void preOrder_Stack(BiTree T){
     }
 }
 
-#pragma mark- 中序遍历
+#pragma mark- 中序遍历_递归
 void inOrder(BiTree T){
     if (T) {
         inOrder(T->lchild);
         visit(T);
         inOrder(T->rchild);
+    }
+}
+
+#pragma mark- 中序遍历_栈
+void inOrder_Stack(BiTree T){
+    SqStack stack;
+    stack.top = -1;
+    BiTree p = T;
+    while (p != NULL || stack.top != -1) {
+        if (p) {//先找完左结点，根节点入栈
+            push(p, &stack);
+            p=p->lchild;
+        } else {
+            p = pop(&stack);
+            visit(p);
+            p=p->rchild;
+        }
     }
 }
 
@@ -110,6 +155,24 @@ void postOrder(BiTree T){
     }
 }
 
+void levelOrder(BiTree T){
+    SqQueue queue;
+    queue.front = 0;
+    queue.rear = 0;
+    BiTree p;
+    enQueue(T, &queue);
+    while (!isEmptyQueue(queue)) {
+        p = outQueue(&queue);
+        visit(p);
+        if (p->lchild) {
+            enQueue(p->lchild, &queue);
+        }
+        if (p->rchild) {
+            enQueue(p->rchild, &queue);
+        }
+    }
+}
+
 int main() {
     BiTree T;
     CreateBiTree(&T);
@@ -117,9 +180,13 @@ int main() {
     preOrder(T);
     printf("\n--------** preOrder2 **--------\n");
     preOrder_Stack(T);
-    printf("\n--------** inOrder **--------\n");
+    printf("\n--------** inOrder1 **--------\n");
     inOrder(T);
+    printf("\n--------** inOrder2 **--------\n");
+    inOrder_Stack(T);
     printf("\n--------** postOrder **--------\n");
     postOrder(T);
+    printf("\n--------** levelOrder **--------\n");
+    levelOrder(T);
     return 0;
 }
